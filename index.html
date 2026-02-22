@@ -1,0 +1,357 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6C63FF">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DailyRoutine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --success: #00b894;
+            --dark: #2D3436;
+            --text-light: #4a5568;
+            --white: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            /* Animated gradient background for the glass effect to pop */
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            color: var(--dark);
+            padding-bottom: 50px;
+            min-height: 100vh;
+        }
+
+        /* --- Glassmorphism Utility --- */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+        }
+
+        /* --- Splash Screen --- */
+        #splashScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #6C63FF, #FF6584);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: opacity 0.6s ease-out;
+        }
+
+        .splash-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .splash-slogan {
+            font-size: 1.1rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        /* --- Header & Controls --- */
+        header {
+            padding: 20px;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            margin: 0;
+            color: var(--dark);
+            font-size: 1.5rem;
+        }
+
+        .btn-edit-toggle {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-edit-toggle.editing {
+            background: var(--secondary);
+            box-shadow: 0 4px 10px rgba(255, 101, 132, 0.3);
+        }
+
+        /* Form Area - Only visible in Edit Mode */
+        #editControls {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block; font-size: 0.85rem; color: var(--text-light);
+            margin-bottom: 5px; font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%; padding: 10px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box; outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            background: white;
+            border-color: var(--primary);
+        }
+
+        .toggle-container { display: flex; gap: 10px; margin-bottom: 15px; }
+        
+        .btn-toggle {
+            flex: 1; padding: 8px;
+            background: rgba(255,255,255,0.5);
+            border: none; border-radius: 10px;
+            cursor: pointer; font-weight: 600;
+            color: var(--text-light); transition: 0.2s;
+        }
+
+        .btn-toggle.active {
+            background: var(--primary); color: var(--white);
+        }
+
+        .btn-action {
+            background: var(--success); color: white;
+            border: none; padding: 12px; width: 100%;
+            border-radius: 10px; font-weight: 600;
+            cursor: pointer; font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        #sectionCopy { display: none; }
+
+        /* --- Routine Display --- */
+        .day-scroller {
+            display: flex; overflow-x: auto; gap: 10px;
+            padding: 10px 20px; scrollbar-width: none;
+        }
+        .day-scroller::-webkit-scrollbar { display: none; }
+
+        .day-chip {
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 0.9rem; font-weight: 600; color: var(--text-light);
+            cursor: pointer; white-space: nowrap; transition: 0.3s;
+        }
+
+        .day-chip.active {
+            background: var(--primary); color: white; border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(108, 99, 255, 0.3);
+        }
+
+        #scheduleContainer {
+            padding: 0 20px; max-width: 600px; margin: 0 auto;
+        }
+
+        .routine-card {
+            border-radius: 15px; padding: 15px; margin-bottom: 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-left: 5px solid transparent;
+            transition: transform 0.2s ease;
+        }
+
+        .time-box {
+            font-weight: 700; color: var(--primary); width: 75px; flex-shrink: 0;
+        }
+
+        .subject-info { flex-grow: 1; padding: 0 10px; }
+        .subject-info h4 { margin: 0; font-size: 1.1rem; }
+
+        /* Action Buttons on Cards */
+        .card-actions button {
+            background: none; border: none; font-size: 1.2rem;
+            cursor: pointer; padding: 5px; transition: 0.2s;
+        }
+        
+        .note-btn { color: var(--primary); }
+        .note-btn.has-note { color: var(--secondary); }
+        .delete-btn { color: var(--secondary); display: none; }
+
+        /* Active Effects */
+        .active-now {
+            border-left-color: var(--success);
+            animation: glowingBorder 2s infinite alternate;
+            transform: scale(1.02);
+        }
+        .active-now .time-box { color: var(--success); }
+
+        @keyframes glowingBorder {
+            0% { box-shadow: 0 0 5px rgba(0, 184, 148, 0.3); }
+            100% { box-shadow: 0 0 15px rgba(0, 184, 148, 0.6); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Minimalist Modal --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            width: 85%; max-width: 400px; padding: 25px;
+            border-radius: 20px; transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.show { opacity: 1; display: flex; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-header h3 { margin: 0; font-size: 1.2rem; color: var(--primary); }
+        
+        .close-modal {
+            background: none; border: none; font-size: 1.5rem; color: var(--text-light); cursor: pointer;
+        }
+
+        .modal-content textarea {
+            height: 120px; resize: none; margin-bottom: 15px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="splashScreen">
+    <div class="splash-title">DailyRoutine</div>
+    <div class="splash-slogan">Organised task, quarter done.</div>
+</div>
+
+<header class="glass">
+    <div class="header-top">
+        <h1 class="header-title"><i class="fas fa-calendar-alt"></i> My Routine</h1>
+        <button id="btnToggleEditMode" class="btn-edit-toggle"><i class="fas fa-pen"></i> Edit</button>
+    </div>
+    
+    <div id="editControls">
+        <div class="control-panel">
+            <div class="form-group">
+                <label for="targetDay">Editing Day:</label>
+                <select id="targetDay">
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                </select>
+            </div>
+
+            <div class="toggle-container">
+                <button class="btn-toggle active" id="btnToggleNew">Make New</button>
+                <button class="btn-toggle" id="btnToggleCopy">Same As</button>
+            </div>
+
+            <div id="sectionNew">
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Time</label>
+                        <input type="time" id="subTime">
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Subject Name</label>
+                        <input type="text" id="subName" placeholder="e.g., Physics">
+                    </div>
+                </div>
+                <button class="btn-action" id="btnAddSubject"><i class="fas fa-plus"></i> Add Subject</button>
+            </div>
+
+            <div id="sectionCopy">
+                <div class="form-group">
+                    <label>Copy routine from:</label>
+                    <select id="copyFromDay">
+                        <option value="">-- Select a day --</option>
+                    </select>
+                </div>
+                <button class="btn-action" id="btnCopyRoutine" style="background: var(--primary);"><i class="fas fa-copy"></i> Copy Routine</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="day-scroller" id="dayTabs"></div>
+
+<main id="scheduleContainer"></main>
+
+<div class="modal-overlay" id="noteModalOverlay">
+    <div class="modal-content glass">
+        <div class="modal-header">
+            <h3 id="modalSubjectTitle">Subject Note</h3>
+            <button class="close-modal" id="btnCloseModal">&times;</button>
+        </div>
+        <textarea id="subjectNoteInput" placeholder="Write dedicated notes for this subject here..."></textarea>
+        <button class="btn-action" id="btnSaveNote">Save Note</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker registered!'))
+            .catch(err => console.log('Service Worker failed:', err));
+        });
+    }
+</script>
+
+</body>
+</html>

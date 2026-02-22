@@ -1,0 +1,17 @@
+ {
+  "name": "DailyRoutine",
+  "short_name": "Routine",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#8ec5fc",
+  "theme_color": "#6C63FF",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3652/3652191.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
